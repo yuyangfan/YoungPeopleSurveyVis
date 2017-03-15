@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Young People Survey</title>
+    <link href="https://fonts.googleapis.com/css?family=Alegreya|Alegreya+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css">
+    <script src="//d3js.org/d3.v4.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+    <script src="https://d3js.org/d3-queue.v3.min.js"></script>
+    <style>
+    body {
+        font-family: 'Alegreya Sans', Calibri, sans-serif;
+        text-align: center;
+        background-color: #eee;
+    }
+
+    h2 {
+        padding-left: 20px;
+        font-weight: lighter;
+        margin: 0;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+    
+    div {
+        text-align: left;
+    }
+
+    div.header {
+        position: fixed;
+        height: auto;
+        width: 100%;
+        background-color: #4285f4;
+        color: white;
+        z-index: 100;  
+        top: 0;
+        left: 0;
+        right: 0;
+        box-shadow: -5px 5px 5px #888888; 
+    }
+
+    div.summary {
+        width: 100%;
+        top: 100px;
+        bottom: 0;
+        position: relative;
+    }
+
+    div.projDetails {
+        top: 80px;
+        position: relative;
+    }
+
+    div.questionnaire {
+        width: 100%;
+        height: auto;
+        top: 100px;
+        position: relative;
+
+    }
+
+    div.question {
+        width: 640px;
+        box-shadow: -1px 1px 1px 1px #888888; 
+        margin: 20px;
+        background-color: white;
+    }
+
+    svg {
+        background: white;
+    }
+
+/*    svg { 
+        background: white;
+        border: solid #ccc 1px;
+        background-opacity: 0.1;
+        display: block;
+        margin: auto;
+        box-shadow: -1px 1px 2px 1px #888888;
+    }*/
+        
+    #headSvg{
+       top: 100px;
+       margin-bottom: 50px;
+       box-shadow: -2px 1px 1px 1px #888888;
+       position: relative; 
+    }
+
+    #svg1{
+        margin-top: 100px;
+        box-shadow: -1px 1px 1px 1px #888888; 
+    }
+
+    .y.axis  {
+      display: none;
+    }
+
+    .y.axis .tick{
+        display: :none;
+    }
+
+    .y.axis line {
+      stroke: #fff;
+      stroke-opacity: .2;
+      shape-rendering: crispEdges;
+    }
+
+    .y.axis .zero line {
+      stroke: #000;
+      stroke-opacity: 1;
+    }
+        
+    rect {
+      fill-opacity: .6;
+      fill: #e377c2;
+    }
+
+    rect:first-child {
+      fill: #1f77b4;
+    }
+
+    .bar{
+        fill-opacity:1;
+    }
+
+    .axisHorizontal path{
+        fill:none;
+        display: none;
+    }
+
+    .axisHorizontal .tick {
+        font-size: 14px;
+        
+
+    }
+    .axisHorizontal .tick line{
+        
+        stroke-width: 1;
+        stroke:rgba(0,0,0,0.1);
+    }
+    .axisHorizontal1 .tick{
+        font-size: 10px;
+    }
+
+    .axisHorizontal1 .axis path{
+        display:none;
+    }
+
+
+    .headRect {
+        fill:black;
+    }
+
+    svg.summary {
+        alignment-baseline: middle;
+        margin-left: 20px;
+        margin-right: 20px;
+        margin-bottom: 20px;
+        padding: 10px;
+        box-shadow: -1px 1px 2px 1px #888888; 
+    }
+
+    svg.summary-bottom {
+        alignment-baseline: middle;
+        margin-left: 10px;
+        margin-right: 20px;
+        margin-bottom: 20px;
+        padding: 10px;
+        box-shadow: -1px 1px 2px 1px #888888; 
+    }
+
+    svg.lollipop-chart {
+        padding-left: 15px;
+        padding-right: 15px;
+        margin-bottom: 0;
+    }
+
+    svg.legend {
+        padding-left: 15px;
+        padding-right: 15px;
+        position: absolute;
+        background: transparent;
+    }
+
+    p {
+        background: white;
+    }
+
+    p.title {
+        margin-left: 20px;
+        font-weight: bold;
+        font-size: 24px;
+        background-color: transparent;
+/*        text-align: center;
+*/    }
+
+    p.subtitle{
+        font-size: 18px;
+        background-color: transparent;
+        margin-left: 20px;
+        margin-top: 0;
+    }
+
+    p.questionnaire {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        padding-left: 15px;
+        border-bottom: 2px solid #eee;
+        margin: 0;
+    }
+
+  /*  text {
+        font-size: 14px;
+        alignment-baseline: middle;
+    }*/
+
+    text.legend {
+        font-size: 11px;
+        alignment-baseline: middle;
+
+    }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Young People Survey:<br>Personality Traits, Views on Life & Opinions</h2>
+    </div>
+    <div class="projDetails">
+        <ul>
+            <li>This is project one for CS3300/INFO5100 by Tony Fan(yf274) and Angeline Pinilla(anp58)</li>
+            <li>The datasets we are using is from <a href="https://fses.uniba.sk/en/"> FSEV UK Statistics, </a> a link to our dataset can be found here: <a href="https://www.kaggle.com/miroslavsabo/young-people-survey"> Young People Survey.  </a>  </li>
+            <li>This project referenced Mike Bostock's  <a href="https://bl.ocks.org/mbostock/7555321"> Long Text Wrapping </a>, and <a href="http://bl.ocks.org/juan-cb/faf62e91e3c70a99a306"> Bar Graph Example </a></li>
+        </ul>
+    </div>
+
+    <!-- Here is the SVG element for visualization -->
+    <svg height="500" width="1200" id="headSvg"></svg>
+    <svg height="2000" width="1200" id="svg1" ></svg>
+
+    <div class="summary">
+        <p class="title">Do young people living in different environments share similiar habits?</p>
+        
+
+    </div>
+    <div class="questionnaire">
+        <p class="title">Survey Results</p>
+        <p class="subtitle">Below are the results of a sample of the 66 different statements presented in the Young People Questionnaire. The percentages displayed represent the opinion of the sample population.</p>
+    <!-- </div> -->
+    
+    <script type="text/javascript"> 
+    
+    // Load and process given datasets to read numeeric values
+    var myData;
+    d3.csv("data2.csv",function(data){
+        console.log("reading csv ...");
+        data.forEach(function(d){
+            d.Name = d.Name,
+            d.femaleAgreePercent = +d.femaleAgreePercent;
+            d.femaleDisPercent = +d.femaleDisPercent;
+            d.maleAgreePercent = +d.maleAgreePercent;
+            d.maleDisPercent = +d.maleDisPercent;
+
+        })      
+        
+        myData = data;
+
+        headGraph(myData);
+        genderGraph(myData);
+        drawLegend();
+    });
+    
+    // draw head summary of the dataset
+    function headGraph(data){
+        
+        // example bar graphs that have totally different views between men and women
+        var summaryData = [];
+        summaryData.push(data[34]);
+        summaryData.push(data[25]);
+        summaryData.push(data[27]);
+        summaryData.push(data[28]);
+        console.log(summaryData);
+
+        var svg2 = d3.select("#headSvg");
+        var width = +svg2.attr("width") - 20,
+            height = +svg2.attr("height") - 40,
+            barWidth = 20,
+            chartWidth = width / 3;
+
+
+        var yAxisScale1 = d3.scaleLinear().domain([0,1]).range([height/2,0]);
+
+        var yAxis1 = d3.axisLeft(yAxisScale1).tickFormat(function(d){ return Math.round(d*100)+"%";});
+            yAxis1.ticks(4);
+
+            svg2.append("g")
+                .attr("class","axisHorizontal1")
+                .attr("class", "y axis")
+                .attr("transform", "translate(60,30)")
+                .call(yAxis1); 
+
+        // title text
+        svg2.append("text").attr("x","600").attr("y","40").text("Teenage men and women think differently sometimes.").attr("font-family","Alegreya Sans").attr("font-size","24").attr("font-weight","bold").attr("text-anchor", "middle");
+
+        // bar load example data
+        var bar1 = svg2.selectAll(".headRect")
+                        .data(summaryData)
+                        .enter();
+                        
+
+            // draw female bar
+            bar1.append("rect")
+                .attr("height",function(d){ return height/2+40 - yAxisScale1(d.femaleAgreePercent);})
+                .attr("width","40" )
+                .attr("x",function(d,i){ return i*250 + 170;})
+                .attr("y",function(d){
+                    return height/2+40 - (height/2+40 - yAxisScale1(d.femaleAgreePercent));
+                });
+    
+
+
+                // draw male bar
+            bar1.append("rect")
+                .attr("height",function(d){ return height/2+40 -  yAxisScale1(d.maleAgreePercent);})
+                .attr("width","40" )
+                .attr("x",function(d,i){ return i*250 + 210;})
+                .attr("y",function(d){
+                    return height/2+40 - (height/2+40 -  yAxisScale1(d.maleAgreePercent));
+                })
+                .attr("style","fill:#4085fc");
+
+                // draw male text value on top of the bar 
+            bar1.append("text")
+                .attr("y", function(d){ return yAxisScale1(d.maleAgreePercent) -10;})
+                .attr("dx","-5")
+                .attr("dy",".35em")
+                .attr("text-anchor", "end")
+                .attr("font-family","Alegreya Sans")
+                .attr("style","fill:black")
+                .text(function(d){
+                    return (Math.round(d.maleAgreePercent*100) + "%");
+                })
+                .attr("x", function(d,i){ return i*250 + 250;});
+
+                // draw female text value on top of the bar 
+            bar1.append("text")
+                .attr("y", function(d){ return yAxisScale1(d.femaleAgreePercent) -10;})
+                .attr("dx","-5")
+                .attr("dy",".35em")
+                .attr("text-anchor", "end")
+                .attr("font-family","Alegreya Sans")
+                .attr("style","fill:black")
+                .text(function(d){
+                    return (Math.round(d.femaleAgreePercent*100) + "%");
+                })
+                .attr("x", function(d,i){ return i*250 + 210;});
+            
+            // draw question below the bar
+            bar1.append("text")
+                .attr("x",function(d,i){  return (i+1)*250 -40;})
+                .attr("text-anchor","middle")
+                .attr("y",height/2 +60)
+                .attr("dy", ".35em") // vertical align middle
+                .attr("font-family","Alegreya Sans")
+                .attr("font-weight","bold")
+                //.attr("style","text-anchor:end")
+                .attr("font-size","16px")
+                .attr("style","align:center")
+                .text(function(d){
+                    return d.Name;
+                }).call(wrap,200);
+    
+            
+                // create a summary of 66 questions 
+            svg2.append("text").attr("text-anchor","middle").attr("x","300").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height-40).attr("style","fill:#4085fc").attr("font-size","72").text("19");
+
+
+            svg2.append("text").attr("text-anchor","middle").attr("x","600").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height-40).attr("style","fill:#4085fc").attr("font-size","72").text("25");
+
+            svg2.append("text").attr("text-anchor","middle").attr("x","900").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height-40).attr("style","fill:#4085fc").attr("font-size","72").text("22");
+
+            svg2.append("text").attr("text-anchor","middle").attr("x","600").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",60).attr("style","fill:grey").attr("font-size","14").text("Among 66 questions, how men and women respond differently --- % of strongly agree");
+
+            svg2.append("text").attr("text-anchor","middle").attr("x","300").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height+15).attr("style","fill:#696969").attr("font-size","14").text("views between men and women");
+
+            svg2.append("text").attr("text-anchor","middle").attr("x","600").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height+15).attr("style","fill:#696969").attr("font-size","14").text("views between men and women");
+
+            svg2.append("text").attr("text-anchor","middle").attr("x","900").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height+15).attr("style","fill:#696969").attr("font-size","14").text("views between men and women");
+
+
+            svg2.append("text")
+                .attr("text-anchor","middle")
+                .attr("x","300")
+                .attr("font-family","Alegreya Sans")
+                .attr("font-weight","bold")
+                .attr("font-size","24")
+                .attr("y",height-10)
+                .attr("dy",".35em")
+                .text("Totally Different")
+                .call(wrap,220);
+
+            svg2.append("text")
+                .attr("text-anchor","middle")
+                .attr("x","600")
+                .attr("font-family","Alegreya Sans")
+                .attr("font-weight","bold")
+                .attr("font-size","24")
+                .attr("dy",".35em")
+                .attr("y",height-10)
+                .text("Somewhat Different")
+                .call(wrap,220);
+
+            svg2.append("text")
+                .attr("text-anchor","middle")
+                .attr("x","900")
+                .attr("font-family","Alegreya Sans")
+                .attr("font-weight","bold")
+                .attr("font-size","24")
+                .attr("y",height-10)
+                .attr("dy",".35em")
+                .text("Almost the Same")
+                .call(wrap,220);
+
+    }
+
+    // this function draws 35 bar graphs to visualize questions and their responses
+    function genderGraph(data){
+                
+        var svg = d3.select("#svg1"),
+        margin = {top:40, right:40, bottom:40,left:40},
+        width = +svg.attr("width"),
+        height = +svg.attr("height") - margin.top,
+        barHeight = 20,
+        barPadding = 10;
+            
+        var xAxisScale = d3.scaleLinear().domain([0,1]).range([0,width-400]);
+        var xAxis = d3.axisBottom(xAxisScale).tickFormat(function(d){ return Math.round(d*100)+"%";});
+            svg.append("g")
+                .attr("class","axisHorizontal")
+                
+                .attr("transform", "translate(380," +height+")")
+                .call(xAxis.tickSize(-height+150)
+                    ); 
+
+        var bar = svg.selectAll(".bar")                                     
+                    .data(data)
+                    .enter()
+                    .append("g");
+            
+        bar.append("text")
+            .attr("x",360)
+            //.attr("text-anchor","end")
+            .attr("y",function(d,i){ 
+                
+                return (i*52+160);
+            })
+            .attr("dy", ".35em") // vertical align middle
+            .attr("font-family","Alegreya Sans")
+            .attr("font-weight","bold")
+            .attr("style","text-anchor:end")
+            .attr("font-size","16px")
+            .text(function(d){
+                return d.Name;
+            }).call(wrap, 330);
+        
+        bar.append("rect")
+            .attr("x", "380")
+            .attr("y", function(d,i){       
+                return (i*51.5+150);
+            })
+            .attr("height",barHeight)
+            
+            .attr("width", function(d){
+                
+                return xAxisScale(d.maleAgreePercent);
+            })
+            .attr("style","fill:#4085fc");//#4876ff
+
+        bar.append("rect")
+            .attr("x", "380")
+            .attr("y", function(d,i){       
+                return (i*51.5+170);
+            })
+            .attr("height",barHeight)       
+            .attr("width", function(d){     
+                return xAxisScale(d.femaleAgreePercent);
+            });
+
+        bar.append("text")
+            
+            .attr("y", function(d,i){       
+                return (i*51.5+160);
+            })
+            .attr("dx","-5")
+            .attr("dy",".35em")
+            .attr("text-anchor", "end")
+            .attr("font-family","Alegreya Sans")
+            .attr("style","fill:white")
+            .text(function(d){
+                return (Math.round(d.maleAgreePercent*100) + "%");
+            })
+            .attr("x", function(d){ 
+                var width = this.getBBox().width;   
+                return xAxisScale(d.maleAgreePercent)+380;
+            });
+
+            bar.append("text")
+            
+            .attr("y", function(d,i){       
+                return (i*51.5+180);
+            })
+            .attr("dx","-5")
+            .attr("dy",".35em")
+            .attr("text-anchor", "end")
+            .attr("font-family","Alegreya Sans")
+            .attr("style","fill:grey")
+            .text(function(d){
+                return (Math.round(d.femaleAgreePercent*100) + "%");
+            })
+            .attr("x", function(d){ 
+                var width = this.getBBox().width;
+                return xAxisScale(d.femaleAgreePercent)+380;
+            });
+        
+            
+    }
+
+
+    // draw legend of the graph
+     function drawLegend() {
+        var svg = d3.select("#svg1");
+        
+        svg.append("text")
+            .attr("x", "600")
+            .attr("y","40")
+            .attr("font-family","Alegreya Sans")
+            .attr("font-size", "25px")
+            .text("How do teenage men and women think and behave differently?")
+            .attr("text-anchor","middle")
+            .attr("font-weight","bold")
+            // .attr("font-style","italic");
+        svg.append("text").attr("text-anchor","middle").attr("x","600").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",65).attr("style","fill:grey").attr("font-size","15").text("Teenage men and women's responses to top 35 questions --- % of strongly agree");
+
+        svg.append("rect")
+            .attr("x", "400")
+            .attr("y","100")
+            .attr("height", "20")
+            .attr("width", "50")
+            .attr("style","fill:#4876ff")
+
+        svg.append("text")
+            .attr("x", "460")
+            .attr("y","115")
+            .attr("font-family","Alegreya Sans")
+            .attr("font-size", "18px")
+            .text("Male")
+            .attr("font-weight","bold")
+            
+
+        svg.append("rect")
+            .attr("x", "550")
+            .attr("y","100")
+            .attr("height", "20")
+            .attr("width", "50")
+
+        svg.append("text")
+            .attr("x", "610")
+            .attr("y","115")
+            .attr("font-family","Alegreya Sans")
+            .attr("font-size", "18px")
+            .text("Female")
+            .attr("font-weight","bold")
+        
+    }
+
+            // wrap long texts, edited and referenced from Mike Bostock: 
+            // https://bl.ocks.org/mbostock/7555321
+            function wrap(text, width) {
+              text.each(function() {
+                var text = d3.select(this),
+                    words = text.text().split(/\s+/).reverse(),
+                    word,
+                    line = [],
+                    lineNumber = 0,
+                    lineHeight = 1.1, // ems
+                    x = text.attr("x"),
+                    y = text.attr("y"),
+                    dy = parseFloat(text.attr("dy")),
+                    tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
+                while (word = words.pop()) {
+                  line.push(word);
+                  tspan.text(line.join(" "));
+                  if (tspan.node().getComputedTextLength() > width) {
+                    line.pop();
+                    tspan.text(line.join(" "));
+                    line = [word];
+                    tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+                  }
+                }
+              });
+            }
+    
+    </script>
+
+
+
+    <script>
+        var svg_width = 600, svg_height = 161;
+        var surveyStatementDetails, rawData;
+        var horizontalAgreeScale = d3.scaleLinear().domain([0,100]).range([svg_width/2, 570]);
+        var horizontalDisagreeScale = d3.scaleLinear().domain([0,100]).range([30,svg_width/2]);
+        var verticalScale = d3.scaleLinear().domain([0,1]).range([40, 121]);
+        
+        var verticalTextScale = d3.scaleLinear().domain([0,4]).range([15,185]);
+        var horizontalTextScale = d3.scaleLinear().domain([0,3]).range([35, 230]);
+
+        d3.queue()
+            .defer(d3.csv, "columns.csv")
+            .defer(d3.csv, "responseAgreeDisagree.csv")
+            .await(process);
+
+        function process(error, colData, surveyData) {
+                surveyStatementDetails = colData;
+                rawData = surveyData;
+
+                summarize(surveyStatementDetails, rawData);
+                displayQuestionnaireResults(surveyStatementDetails, rawData);
+        }
+
+        function summarize (colData, surveyData) {
+             
+            /*  Top3 = survey questions with greatest percentage of population that agrees with them
+             *  Bottom3 = survey questions with least percentage of population that agrees with them
+             */
+
+            var summaryData = getTopBottomThreeSurveyQuestions(colData, surveyData); 
+            var svg_width = 1280 / 5;  
+
+            for(var i=0; i < Object.keys(summaryData).length; i++) {
+                var svgTitle = ((Object.keys(summaryData)[i]).split("_")[0]).toUpperCase();
+                var rank = (svgTitle.slice(0, svgTitle.length-1)).toLowerCase(); 
+                var category = (Object.keys(summaryData)[i]).split("_")[1];
+                
+                /* setup svg contents: text and image elements */
+                d3.select("body").select("div.summary")
+                    .append("svg")
+                        .attr("class", "summary")
+                        .attr("id", rank + category)
+                        .attr("width", svg_width)
+                        .attr("height", "200")
+                        .append("text")
+                            .attr("class", rank + category)
+                            .attr("x", "0")
+                            .attr("y", "10")
+                            .attr("text-anchor", "center")
+                            .text(rank.slice(0,1).toUpperCase() + rank.slice(1) + " 3 Habits: " + category.slice(0,1).toUpperCase() + category.slice(1) + " Dwellers")
+                            // .attr("transform", "translate(50,20)")   
+                            .style("fill", "black")
+                            .style("font-size", "18")
+                        .select(function(){ return this.parentNode }) 
+                        // .append("image")
+                        //     .attr("x", "5")
+                        //     .attr("y", function(){ return rank == "top" ? 10 : 15 })
+                        //     .attr("xlink:href", "imgs/" + category + ".png")
+                        //     .attr("height", function() { return rank=="top" ? 130 : 65 })
+                        //     .attr("width", "55");
+
+                /* Display List of Top Questionnaire Items */
+                summaryData[rank + "3_" + category].forEach(function(statement, i) {   
+                    d3.select("body").select("div.summary").select("#" + rank + category)
+                        .append("rect")
+                            .attr("x", horizontalTextScale(i))
+                            .attr("y", 35)
+                            .attr("height", 150)
+                            .attr("width", 50)
+                            .style("fill", function() { return (i == 0) ? "red": (i == 1) ? "#4285f4" : "green"})
+                            .style("opacity", ".7")
+                        .select(function(){ return this.parentNode }) 
+                        .append("text")
+                            .text(function() { return (i == 0) ? "1": (i ==1) ? "2" : "3"})
+                            .style("font-size", "20")
+                            .style("fill", "white")
+                            .attr("x",  horizontalTextScale(i)+13)
+                            .attr("y", 55)
+                            .append("tspan")
+                                .text(function() { return (i == 0) ? "st": (i==1) ? "nd" : "rd"})
+                                .style("font-size", "11")
+                                .attr("dx", ".1em")
+                                .attr("dy", "-.75em")
+                        .select(function(){ return (this.parentNode).parentNode }) 
+
+                        .append("text")
+                        .text(statement.Theme)
+                        .attr("x", -180)
+                        .attr("y", horizontalTextScale(i)+28)
+                        .style("fill", "white")
+                        .style("font-weight", "thinner")
+                        .attr("transform", "rotate(-90)");
+
+                });
+            }
+        }
+
+        function displayQuestionnaireResults(colData, surveyData) {       
+                
+                /* City Agree & Village Agree UI Elements */          
+
+                surveyData.sort(function(a,b) {
+                    return b.cityAgreePercent - a.cityAgreePercent;
+                });
+
+                surveyData = surveyData.slice(0, 32);
+
+                surveyData.forEach(function(statement, i) {
+                    d3.select("body").select("div.questionnaire").append("div")
+                        .attr("class", "question")
+                        .attr("id", "Q"+ (i+1))
+                        .append("svg")
+                            .attr("width", "610")
+                            .attr("height", "50")
+                            .attr("class", "legend")
+                            .append("g")
+                                .attr("transform", "translate(515,7)")
+                                .append("circle")
+                                    .attr("cx", "40")
+                                    .attr("cy", "20")
+                                    .attr("r", "5")
+                                    .style("fill", "orange")
+                                .select(function(){ return this.parentNode })
+                                .append("text")
+                                        .attr("class", "legend")
+                                        .attr("x", "50")
+                                        .attr("y", "21")
+                                        .style("fill", "black")
+                                        .text("Disagree")    
+                                .select(function(){ return this.parentNode; })
+                                .append("circle")
+                                    .attr("cx", "40")
+                                    .attr("cy", "5")
+                                    .attr("r", "5")
+                                    .style("fill", "green")
+                                .select(function(){ return this.parentNode; })
+                                .append("text")
+                                    .attr("class", "legend")
+                                    .attr("x", "50")
+                                    .attr("y", "6")
+                                    .style("fill", "black")
+                                    .text("Agree")    
+                        .select(function(){ return ((this.parentNode).parentNode).parentNode; })
+                        .append("p")
+                            .attr("class", "questionnaire")
+                            .text(colData.filter(function(d) { return (d.Theme == statement.Theme) ? true:false; })[0].SurveyStatement)
+                        .select(function(){ return this.parentNode; })
+                        .append("svg")
+                            .attr("width", "610")
+                            .attr("height", "161")
+                            .attr("class", "lollipop-chart")
+                            .append("text")
+                                .attr("x", 0)
+                                .attr("y", verticalScale(0))
+                                .style("fill", "black")
+                                .text("City-Dweller")    
+                            .select(function(){ return this.parentNode; })
+                
+                            .append("text")
+                                .attr("x", 0)
+                                .attr("y", verticalScale(1))
+                                .style("fill", "black")
+                                .text("Village-Dweller")    
+                            .select(function(){ return this.parentNode; })
+                           
+
+                            .append("line")
+                                .attr("x1", 300)
+                                .attr("y1", verticalScale(0))
+                                .attr("x2", horizontalAgreeScale(toPercentage(rawData[i].cityAgreePercent)))
+                                .attr("y2", verticalScale(0))
+                                .style("stroke", "grey")
+                                .style("opacity", .5)
+                                .style("stroke-width", 7)
+                            .select(function() { return this.parentNode; })
+                        
+                            .append("line")
+                                .attr("x1", horizontalDisagreeScale(0)+(300-horizontalDisagreeScale(toPercentage(rawData[i].cityDisPercent))))
+                                .attr("y1", verticalScale(0))
+                                .attr("x2", 300)
+                                .attr("y2", verticalScale(0))
+                                .style("stroke", "grey")
+                                .style("opacity", .5)
+                                .style("stroke-width", 7)
+                            .select(function() { return this.parentNode; })
+                        
+                            .append("circle")
+                                .attr("cx", horizontalAgreeScale(toPercentage(rawData[i].cityAgreePercent))+20)
+                                .attr("cy", verticalScale(0))
+                                .attr("r", "20")
+                                .style("fill", "green")
+                            .select(function() { return this.parentNode; })
+                            
+                            .append("text")
+                                .attr("x", horizontalAgreeScale(toPercentage(rawData[i].cityAgreePercent))+20)
+                                .attr("y", verticalScale(0))
+                                .attr("text-anchor", "middle")
+                                .attr("alignment-baseline", "middle")
+                                .style("fill", "white")
+                                .text(toPercentage(rawData[i].cityAgreePercent)+ "%")
+                            .select(function() { return this.parentNode; })
+
+                            .append("circle")
+                                .attr("cx", horizontalDisagreeScale(0)+(300-horizontalDisagreeScale(toPercentage(rawData[i].cityDisPercent)))-20)
+                                .attr("cy", verticalScale(0))
+                                .attr("r", "20")
+                                .style("fill", "orange")
+                            .select(function() { return this.parentNode; })
+                            
+                            .append("text")
+                                .attr("x", horizontalDisagreeScale(0)+(300-horizontalDisagreeScale(toPercentage(rawData[i].cityDisPercent)))-20)
+                                .attr("y", verticalScale(0))
+                                .attr("text-anchor", "middle")
+                                .attr("alignment-baseline", "middle")
+                                .style("fill", "white")
+                                .text(toPercentage(rawData[i].cityDisPercent)+ "%")
+                            .select(function() { return this.parentNode; })
+
+                            .append("line")
+                                .attr("x1", 300)
+                                .attr("y1", verticalScale(1))
+                                .attr("x2", horizontalAgreeScale(toPercentage(rawData[i].villageAgreePercent)))
+                                .attr("y2", verticalScale(1))
+                                .style("stroke", "grey")
+                                .style("opacity", .5)
+                                .style("stroke-width", 7)
+                            .select(function() { return this.parentNode; })
+
+                            .append("line")
+                                .attr("x1", horizontalDisagreeScale(0)+(300-horizontalDisagreeScale(toPercentage(rawData[i].villageDisPercent))))
+                                .attr("y1", verticalScale(1))
+                                .attr("x2", 300)
+                                .attr("y2", verticalScale(1))
+                                .style("stroke", "grey")
+                                .style("opacity", .5)
+                                .style("stroke-width", 7)
+                            .select(function() { return this.parentNode; })
+
+                            .append("circle")
+                                .attr("cx", horizontalAgreeScale(toPercentage(rawData[i].villageAgreePercent))+20)
+                                .attr("cy", verticalScale(1))
+                                .attr("r", "20")
+                                .style("fill", "green")
+                            .select(function() { return this.parentNode; })
+
+                            .append("text")
+                                .attr("x", horizontalAgreeScale(toPercentage(rawData[i].villageAgreePercent))+20)
+                                .attr("y", verticalScale(1))
+                                .attr("text-anchor", "middle")
+                                .attr("alignment-baseline", "middle")
+                                .style("fill", "white")
+                                .text(toPercentage(rawData[i].villageAgreePercent)+ "%")
+                            .select(function() { return this.parentNode; })
+
+                            .append("circle")
+                                .attr("cx", horizontalDisagreeScale(0)+(300-horizontalDisagreeScale(toPercentage(rawData[i].villageDisPercent)))-20)
+                                .attr("cy", verticalScale(1))
+                                .attr("r", "20")
+                                .style("fill", "orange")
+                            .select(function() { return this.parentNode; })
+
+                            .append("text")
+                                .attr("x", horizontalDisagreeScale(0)+(300-horizontalDisagreeScale(toPercentage(rawData[i].villageDisPercent)))-20)
+                                .attr("y", verticalScale(1))
+                                .attr("text-anchor", "middle")
+                                .attr("alignment-baseline", "middle")
+                                .style("fill", "white")
+                                .text(toPercentage(rawData[i].villageDisPercent)+ "%")
+                            .select(function() { return this.parentNode; })
+
+                            .append("line")
+                                .attr("x1", horizontalAgreeScale(0))
+                                .attr("y1", 5)
+                                .attr("x2", horizontalAgreeScale(0))
+                                .attr("y2", 156)
+                                .style("stroke", "grey")
+                                .style("stroke-width", 1)
+                                .style("stroke-dasharray", "5,5");
+                });
+        }
+
+        function getTopBottomThreeSurveyQuestions(columnDetails, data) {
+            var villageAgreeItems = Object.keys(data).map(function(key) {
+                    return toPercentage(data[key]["villageAgreePercent"]);
+            });
+
+            var cityAgreeItems = Object.keys(data).map(function(key) {
+                    return toPercentage(data[key]["cityAgreePercent"]);
+            });
+            
+            cityAgreeItems.pop(); /* remove last null element*/
+            villageAgreeItems.pop(); /* remove last null element */
+
+            var cityAgreeDict = (cityAgreeItems).map(function(x,i) {
+                return{"Theme":columnDetails[i]["Theme"], "Val": x }
+            }.bind(this));            
+
+            var villageAgreeDict = (villageAgreeItems).map(function(x,i) {
+                return{"Theme":columnDetails[i]["Theme"], "Val": x }
+            }.bind(this));
+        
+            /* sort descending */
+
+            var cityAgree = cityAgreeDict.sort(
+                function(a,b) {
+                    return b.Val - a.Val;
+                });
+
+            var villageAgree = villageAgreeDict.sort(
+                function(a,b) {
+                    return b.Val - a.Val;
+                });
+
+            /*  filter diffs to get top 3 and return */
+            return {
+                    "top3_city": cityAgree.slice(0,3),
+                    "top3_village": villageAgree.slice(0,3),
+                    "bottom3_city": cityAgree.slice(1).slice(-3),
+                    "bottom3_village": villageAgree.slice(1).slice(-3)
+                    };
+        }
+
+        function toPercentage(decimalString) {
+            return Math.round(parseFloat(decimalString)*100);
+        }
+    </script>
+</body>
+</html>

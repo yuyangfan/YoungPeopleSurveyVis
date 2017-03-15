@@ -1,0 +1,461 @@
+<html>
+<head>
+	<title>Young People's Views on Life</title>
+	<link href="https://fonts.googleapis.com/css?family=Alegreya|Alegreya+Sans" rel="stylesheet">
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<style>
+	body { font-family: 'Alegreya Sans', Calibri, sans-serif; background-color: #eee;}
+	svg { 
+		background: white;
+		border: solid #ccc 1px;
+		background-opacity: 0.1;
+		display: block;
+		margin: auto;
+		
+	}
+		
+	#headSvg{
+		margin-top: 100px
+		margin-bottom: 50px;
+		box-shadow: -1px 1px 2px 1px #888888;
+	}
+
+	#svg1{
+		margin-top: 50px;
+	}
+
+	.y.axis  {
+	  display: none;
+	}
+
+	.y.axis .tick{
+		display: :none;
+	}
+
+	.y.axis line {
+	  stroke: #fff;
+	  stroke-opacity: .2;
+	  shape-rendering: crispEdges;
+	}
+
+	.y.axis .zero line {
+	  stroke: #000;
+	  stroke-opacity: 1;
+	}
+		
+	rect {
+	  fill-opacity: .6;
+	  fill: #e377c2;
+	}
+
+	rect:first-child {
+	  fill: #1f77b4;
+	}
+
+	.bar{
+		fill-opacity:1;
+	}
+
+	.axisHorizontal path{
+		fill:none;
+		display: none;
+	}
+
+	.axisHorizontal .tick {
+		font-size: 14px;
+		
+
+	}
+	.axisHorizontal .tick line{
+		
+		stroke-width: 1;
+		stroke:rgba(0,0,0,0.1);
+	}
+	.axisHorizontal1 .tick{
+		font-size: 10px;
+	}
+
+	.axisHorizontal1 .axis path{
+		display:none;
+	}
+
+
+	.headRect {
+		fill:black;
+	}
+	</style>
+</head>
+<body>
+	<h3>Young People's Views on Life and Opinions</h3>
+
+	<div>
+	<ul>
+		<li>This is project one for CS3300/INFO5100 by Tony Fan(yf274) and Angeline Pinilla(anp58)</li>
+		<li>The datasets we are using is from <a href="https://fses.uniba.sk/en/"> FSEV UK Statistics, </a> a link to our dataset can be found here: <a href="https://www.kaggle.com/miroslavsabo/young-people-survey"> Young People Survey.  </a>  </li>
+		<li>This project referenced Mike Bostock's  <a href="https://bl.ocks.org/mbostock/7555321"> Long Text Wrapping </a>, and <a href="http://bl.ocks.org/juan-cb/faf62e91e3c70a99a306"> Bar Graph Example </a></li>
+	</ul>
+	</div>
+
+	<!-- Here is the SVG element for visualization -->
+	<svg height="500" width="1200" id="headSvg"></svg>
+	<svg height="2000" width="1200" id="svg1" ></svg>
+
+
+<script type="text/javascript"> 
+	
+	// Load and process given datasets to read numeeric values
+	var myData;
+	d3.csv("data/data2.csv",function(data){
+		console.log("reading csv ...");
+		data.forEach(function(d){
+			d.Name = d.Name,
+			d.femaleAgreePercent = +d.femaleAgreePercent;
+			d.femaleDisPercent = +d.femaleDisPercent;
+			d.maleAgreePercent = +d.maleAgreePercent;
+			d.maleDisPercent = +d.maleDisPercent;
+
+		})		
+		
+		myData = data;
+
+		headGraph(myData);
+		genderGraph(myData);
+		drawLegend();
+	});
+	
+	// draw head summary of the dataset
+	function headGraph(data){
+		
+		// example bar graphs that have totally different views between men and women
+		var summaryData = [];
+		summaryData.push(data[34]);
+		summaryData.push(data[25]);
+		summaryData.push(data[27]);
+		summaryData.push(data[28]);
+		console.log(summaryData);
+
+		var svg2 = d3.select("#headSvg");
+		var width = +svg2.attr("width") - 20,
+			height = +svg2.attr("height") - 40,
+			barWidth = 20,
+			chartWidth = width / 3;
+
+
+		var yAxisScale1 = d3.scaleLinear().domain([0,1]).range([height/2,0]);
+
+		var yAxis1 = d3.axisLeft(yAxisScale1).tickFormat(function(d){ return Math.round(d*100)+"%";});
+			yAxis1.ticks(4);
+
+			svg2.append("g")
+				.attr("class","axisHorizontal1")
+				.attr("class", "y axis")
+				.attr("transform", "translate(60,30)")
+				.call(yAxis1); 
+
+		// title text
+		svg2.append("text").attr("x","600").attr("y","40").text("Teenage men and women think differently sometimes.").attr("font-family","Alegreya Sans").attr("font-size","24").attr("font-weight","bold").attr("text-anchor", "middle");
+
+		// bar load example data
+		var bar1 = svg2.selectAll(".headRect")
+						.data(summaryData)
+						.enter();
+						
+
+			// draw female bar
+			bar1.append("rect")
+				.attr("height",function(d){ return height/2+40 - yAxisScale1(d.femaleAgreePercent);})
+				.attr("width","40" )
+				.attr("x",function(d,i){ return i*250 + 170;})
+				.attr("y",function(d){
+					return height/2+40 - (height/2+40 - yAxisScale1(d.femaleAgreePercent));
+				});
+	
+
+
+				// draw male bar
+			bar1.append("rect")
+				.attr("height",function(d){ return height/2+40 -  yAxisScale1(d.maleAgreePercent);})
+				.attr("width","40" )
+				.attr("x",function(d,i){ return i*250 + 210;})
+				.attr("y",function(d){
+					return height/2+40 - (height/2+40 -  yAxisScale1(d.maleAgreePercent));
+				})
+				.attr("style","fill:#4085fc");
+
+				// draw male text value on top of the bar 
+			bar1.append("text")
+				.attr("y", function(d){ return yAxisScale1(d.maleAgreePercent) -10;})
+				.attr("dx","-5")
+				.attr("dy",".35em")
+				.attr("text-anchor", "end")
+				.attr("font-family","Alegreya Sans")
+				.attr("style","fill:black")
+				.text(function(d){
+					return (Math.round(d.maleAgreePercent*100) + "%");
+				})
+				.attr("x", function(d,i){ return i*250 + 250;});
+
+				// draw female text value on top of the bar 
+			bar1.append("text")
+				.attr("y", function(d){ return yAxisScale1(d.femaleAgreePercent) -10;})
+				.attr("dx","-5")
+				.attr("dy",".35em")
+				.attr("text-anchor", "end")
+				.attr("font-family","Alegreya Sans")
+				.attr("style","fill:black")
+				.text(function(d){
+					return (Math.round(d.femaleAgreePercent*100) + "%");
+				})
+				.attr("x", function(d,i){ return i*250 + 210;});
+			
+			// draw question below the bar
+			bar1.append("text")
+				.attr("x",function(d,i){  return (i+1)*250 -40;})
+				.attr("text-anchor","middle")
+				.attr("y",height/2 +60)
+				.attr("dy", ".35em") // vertical align middle
+				.attr("font-family","Alegreya Sans")
+				.attr("font-weight","bold")
+				//.attr("style","text-anchor:end")
+				.attr("dy",".35em")
+				.attr("font-size","16px")
+				.attr("style","align:center")
+				.text(function(d){
+					return d.Name;
+				}).call(wrap,200);
+	
+			
+				// create a summary of 66 questions 
+			svg2.append("text").attr("text-anchor","middle").attr("x","300").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height-40).attr("style","fill:#4085fc").attr("font-size","72").text("19");
+
+
+			svg2.append("text").attr("text-anchor","middle").attr("x","600").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height-40).attr("style","fill:#4085fc").attr("font-size","72").text("25");
+
+			svg2.append("text").attr("text-anchor","middle").attr("x","900").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height-40).attr("style","fill:#4085fc").attr("font-size","72").text("22");
+
+			svg2.append("text").attr("text-anchor","middle").attr("x","600").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",60).attr("style","fill:grey").attr("font-size","14").text("Among 66 questions, how men and women respond differently --- % of strongly agree");
+
+			svg2.append("text").attr("text-anchor","middle").attr("x","300").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height+15).attr("style","fill:#696969").attr("font-size","14").text("views between men and women");
+
+			svg2.append("text").attr("text-anchor","middle").attr("x","600").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height+15).attr("style","fill:#696969").attr("font-size","14").text("views between men and women");
+
+			svg2.append("text").attr("text-anchor","middle").attr("x","900").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",height+15).attr("style","fill:#696969").attr("font-size","14").text("views between men and women");
+
+
+			svg2.append("text")
+				.attr("text-anchor","middle")
+				.attr("x","300")
+				.attr("font-family","Alegreya Sans")
+				.attr("font-weight","bold")
+				.attr("font-size","24")
+				.attr("y",height-10)
+				.attr("dy",".35em")
+				.text("Totally Different")
+				.call(wrap,220);
+
+			svg2.append("text")
+				.attr("text-anchor","middle")
+				.attr("x","600")
+				.attr("font-family","Alegreya Sans")
+				.attr("font-weight","bold")
+				.attr("font-size","24")
+				.attr("y",height-10)
+				.attr("dy",".35em")
+				.text("Somewhat Different")
+				.call(wrap,220);
+
+			svg2.append("text")
+				.attr("text-anchor","middle")
+				.attr("x","900")
+				.attr("font-family","Alegreya Sans")
+				.attr("font-weight","bold")
+				.attr("font-size","24")
+				.attr("y",height-10)
+				.attr("dy",".35em")
+				.text("Almost the Same")
+				.call(wrap,220);
+
+	}
+
+	// this function draws 35 bar graphs to visualize questions and their responses
+	function genderGraph(data){
+				
+		var svg = d3.select("#svg1"),
+		margin = {top:40, right:40, bottom:40,left:40},
+		width = +svg.attr("width"),
+		height = +svg.attr("height") - margin.top,
+		barHeight = 20,
+		barPadding = 10;
+			
+		var xAxisScale = d3.scaleLinear().domain([0,1]).range([0,width-400]);
+		var xAxis = d3.axisBottom(xAxisScale).tickFormat(function(d){ return Math.round(d*100)+"%";});
+			svg.append("g")
+				.attr("class","axisHorizontal")
+				
+				.attr("transform", "translate(380," +height+")")
+				.call(xAxis.tickSize(-height+150)
+					); 
+
+		var bar = svg.selectAll(".bar")										
+					.data(data)
+					.enter()
+					.append("g");
+			
+		bar.append("text")
+			.attr("x",360)
+			//.attr("text-anchor","end")
+			.attr("y",function(d,i){ 
+				
+				return (i*52+160);
+			})
+			.attr("dy", ".35em") // vertical align middle
+			.attr("font-family","Alegreya Sans")
+			.attr("font-weight","bold")
+			.attr("style","text-anchor:end")
+			.attr("font-size","16px")
+			.text(function(d){
+				return d.Name;
+			}).call(wrap, 330);
+		
+		bar.append("rect")
+			.attr("x", "380")
+			.attr("y", function(d,i){ 		
+				return (i*51.5+150);
+			})
+			.attr("height",barHeight)
+			
+			.attr("width", function(d){
+				
+				return xAxisScale(d.maleAgreePercent);
+			})
+			.attr("style","fill:#4085fc");//#4876ff
+
+		bar.append("rect")
+			.attr("x", "380")
+			.attr("y", function(d,i){ 		
+				return (i*51.5+170);
+			})
+			.attr("height",barHeight)		
+			.attr("width", function(d){		
+				return xAxisScale(d.femaleAgreePercent);
+			});
+
+		bar.append("text")
+			
+			.attr("y", function(d,i){ 		
+				return (i*51.5+160);
+			})
+			.attr("dx","-5")
+			.attr("dy",".35em")
+			.attr("text-anchor", "end")
+			.attr("font-family","Alegreya Sans")
+			.attr("style","fill:white")
+			.text(function(d){
+				return (Math.round(d.maleAgreePercent*100) + "%");
+			})
+			.attr("x", function(d){ 
+				var width = this.getBBox().width;	
+				return xAxisScale(d.maleAgreePercent)+380;
+			});
+
+			bar.append("text")
+			
+			.attr("y", function(d,i){ 		
+				return (i*51.5+180);
+			})
+			.attr("dx","-5")
+			.attr("dy",".35em")
+			.attr("text-anchor", "end")
+			.attr("font-family","Alegreya Sans")
+			.attr("style","fill:grey")
+			.text(function(d){
+				return (Math.round(d.femaleAgreePercent*100) + "%");
+			})
+			.attr("x", function(d){ 
+				var width = this.getBBox().width;
+				return xAxisScale(d.femaleAgreePercent)+380;
+			});
+		
+			
+	}
+
+
+	// draw legend of the graph
+	 function drawLegend() {
+		var svg = d3.select("#svg1");
+		
+		svg.append("text")
+			.attr("x", "600")
+			.attr("y","40")
+			.attr("font-family","Alegreya Sans")
+			.attr("font-size", "25px")
+			.text("How do teenage men and women think and behave differently?")
+			.attr("text-anchor","middle")
+			.attr("font-weight","bold")
+			// .attr("font-style","italic");
+		svg.append("text").attr("text-anchor","middle").attr("x","600").attr("font-family","Alegreya Sans").attr("font-weight","bold").attr("y",65).attr("style","fill:grey").attr("font-size","15").text("Teenage men and women's responses to top 35 questions --- % of strongly agree");
+
+		svg.append("rect")
+			.attr("x", "400")
+			.attr("y","100")
+			.attr("height", "20")
+			.attr("width", "50")
+			.attr("style","fill:#4876ff")
+
+		svg.append("text")
+			.attr("x", "460")
+			.attr("y","115")
+			.attr("font-family","Alegreya Sans")
+			.attr("font-size", "18px")
+			.text("Male")
+			.attr("font-weight","bold")
+			
+
+		svg.append("rect")
+			.attr("x", "550")
+			.attr("y","100")
+			.attr("height", "20")
+			.attr("width", "50")
+
+		svg.append("text")
+			.attr("x", "610")
+			.attr("y","115")
+			.attr("font-family","Alegreya Sans")
+			.attr("font-size", "18px")
+			.text("Female")
+			.attr("font-weight","bold")
+		
+	}
+
+			// wrap long texts, edited and referenced from Mike Bostock: 
+			// https://bl.ocks.org/mbostock/7555321
+			function wrap(text, width) {
+			  text.each(function() {
+			    var text = d3.select(this),
+			        words = text.text().split(/\s+/).reverse(),
+			        word,
+			        line = [],
+			        lineNumber = 0,
+			        lineHeight = 1.1, // ems
+			        x = text.attr("x"),
+			        y = text.attr("y"),
+			        dy = parseFloat(text.attr("dy")),
+			        tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
+			    while (word = words.pop()) {
+			      line.push(word);
+			      tspan.text(line.join(" "));
+			      if (tspan.node().getComputedTextLength() > width) {
+			        line.pop();
+			        tspan.text(line.join(" "));
+			        line = [word];
+			        tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+			      }
+			    }
+			  });
+			}
+	
+</script>
+	
+</body>
+
+</html>
